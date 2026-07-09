@@ -35,3 +35,41 @@ func (s *ProductStorage) CreateProduct(product models.Product) (models.Product, 
 
 	return product, nil
 }
+
+func (s *ProductStorage) GetProducts() ([]models.Product, error) {
+	query := `
+	SELECT id, title, price, in_stock, created_at
+	FROM products
+	ORDER BY id ASC
+	`
+	rows, err := s.DB.Query(query)
+	if err != nil {
+		return []models.Product{}, err
+	}
+	defer rows.Close()
+
+	products := make([]models.Product, 0)
+
+	for rows.Next() {
+		var product models.Product
+
+		err := rows.Scan(
+			&product.ID,
+			&product.Title,
+			&product.Price,
+			&product.InStock,
+			&product.CreatedAt,
+		)
+		if err != nil {
+			return []models.Product{}, err
+		}
+		products = append(products, product)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return []models.Product{}, err
+	}
+
+	return products, nil
+}

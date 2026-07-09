@@ -52,3 +52,18 @@ func (h *ProductHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteSucces(w, http.StatusCreated, "Product Created Succsessfully!", createProduct)
 }
+
+func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	products, err := h.Storage.GetProducts()
+	if err != nil {
+		response.WriteError(w, http.StatusInternalServerError, "Failed to get products")
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, products)
+}
