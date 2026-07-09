@@ -1,9 +1,9 @@
 package response
 
 import (
+	"encoding/json"
 	"net/http"
 	"product-api-postgres/internal/models"
-	"encoding/json"
 )
 
 type ErrorResponse struct {
@@ -11,7 +11,7 @@ type ErrorResponse struct {
 }
 
 type SuccessResponse struct {
-	Message string `json:"message"`
+	Message string         `json:"message"`
 	Product models.Product `json:"product"`
 }
 
@@ -22,14 +22,14 @@ func WriteJSON(w http.ResponseWriter, status int, data any) {
 }
 
 func WriteError(w http.ResponseWriter, status int, message string) {
-	errorResponse := ErrorResponse {
+	errorResponse := ErrorResponse{
 		Error: message,
 	}
 	WriteJSON(w, status, errorResponse)
 
 }
 
-func WriteSuscces(w http.ResponseWriter, status int, message string, product models.Product) {
+func WriteSucces(w http.ResponseWriter, status int, message string, product models.Product) {
 	successResponse := SuccessResponse{
 		Message: message,
 		Product: product,

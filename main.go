@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"product-api-postgres/internal/database"
+	"product-api-postgres/internal/handlers"
+	"product-api-postgres/internal/storage"
 )
 
 func main() {
@@ -13,4 +16,12 @@ func main() {
 	}
 	defer db.Close()
 	fmt.Println("Connected to database succsessfully!")
+
+	productStorage := storage.NewProductStorage(db)
+	productHandler := handlers.NewProductHandler(productStorage)
+
+	http.HandleFunc("/addProduct", productHandler.AddProduct)
+
+	fmt.Println("Server is running on port 8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
