@@ -7,6 +7,7 @@ import (
 	"product-api-postgres/internal/models"
 	"product-api-postgres/internal/response"
 	"product-api-postgres/internal/storage"
+	"strconv"
 )
 
 type ProductHandler struct {
@@ -66,4 +67,30 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.WriteJSON(w, http.StatusOK, products)
+}
+
+func (h ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		response.WriteError(w, http.StatusBadRequest, "ID is empty")
+		return
+	}
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		response.WriteError(w, http.StatusInternalServerError, "Error to convert string to int!")
+		return
+	}
+
+	product, err := h.Storage.GetProduct(id)
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "product not found!")
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, product)
 }

@@ -73,3 +73,23 @@ func (s *ProductStorage) GetProducts() ([]models.Product, error) {
 
 	return products, nil
 }
+
+func (s *ProductStorage) GetProduct(id int) (models.Product, error) {
+	var product models.Product
+	query := `SELECT id, title, price, in_stock, created_at
+	FROM products
+	WHERE id = $1`
+
+	err := s.DB.QueryRow(query, id).Scan(
+		&product.ID,
+		&product.Title,
+		&product.Price,
+		&product.InStock,
+		&product.CreatedAt,
+	)
+	if err != nil {
+		return models.Product{}, err
+	}
+	return product, nil
+
+}
