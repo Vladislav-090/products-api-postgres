@@ -91,5 +91,25 @@ func (s *ProductStorage) GetProduct(id int) (models.Product, error) {
 		return models.Product{}, err
 	}
 	return product, nil
+}
 
+func (s *ProductStorage) UpdateProduct(id int, product models.Product) (models.Product, error) {
+	query := `
+	UPDATE products
+	SET title = $1, price = $2, in_stock = $3
+	WHERE id = $4
+	RETURNING id, title, price, in_stock, created_at
+	`
+	err := s.DB.QueryRow(query, product.Title, product.Price, product.InStock, id).Scan(
+		&product.ID,
+		&product.Title,
+		&product.Price,
+		&product.InStock,
+		&product.CreatedAt,
+	)
+	if err != nil {
+		return models.Product{}, err
+	}
+
+	return product, nil
 }

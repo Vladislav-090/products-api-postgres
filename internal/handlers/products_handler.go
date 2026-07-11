@@ -94,3 +94,48 @@ func (h ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	response.WriteJSON(w, http.StatusOK, product)
 }
+
+func (h ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodPut {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		response.WriteError(w, http.StatusBadRequest, "Titile is empty!")
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "Invalid ID")
+		return
+	}
+
+	var product models.Product
+
+	err = json.NewDecoder(r.Body).Decode(&product)
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "InvalidJSON")
+		return
+	}
+
+	if product.Title == "" {
+		response.WriteError(w, http.StatusBadRequest, "Title is empty!")
+		return
+	}
+
+	if product.Price <= 0 {
+		response.WriteError(w, http.StatusBadRequest, "Price must be positive!")
+		return
+	}
+	updatedProduct, err := h.Storage.UpdateProduct(id, product)
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "product not found!")
+		return
+	}
+	response.WriteJSON(w, http.StatusOK, updatedProduct)
+}
