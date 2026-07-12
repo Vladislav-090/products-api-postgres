@@ -168,3 +168,20 @@ func (h ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Requ
 		"message": "Product deleted successfully",
 	})
 }
+
+func (h ProductHandler) GetCountHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	count, err := h.Storage.GetCount()
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "get count error!")
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, map[string]int{
+		"count": count,
+	})
+}
