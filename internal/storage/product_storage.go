@@ -148,3 +148,14 @@ func (s *ProductStorage) GetCount() (int, error) {
 	}
 	return count, nil
 }
+
+func (s *ProductStorage) ClearProducts() error {
+	query := `
+	DELETE FROM products`
+
+	_, err := s.DB.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}

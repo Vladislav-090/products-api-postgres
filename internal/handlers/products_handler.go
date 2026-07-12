@@ -185,3 +185,19 @@ func (h ProductHandler) GetCountHandler(w http.ResponseWriter, r *http.Request) 
 		"count": count,
 	})
 }
+
+func (h ProductHandler) ClearProductsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	err := h.Storage.ClearProducts()
+	if err != nil {
+		response.WriteError(w, http.StatusBadGateway, "Failed to clear products!")
+		return
+	}
+	response.WriteJSON(w, http.StatusOK, map[string]string{
+		"Message": "All Products cleared successfully!",
+	})
+}

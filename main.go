@@ -26,6 +26,7 @@ func main() {
 	http.HandleFunc("/updateProduct", productHandler.UpdateProductHandler)
 	http.HandleFunc("/deleteProduct", productHandler.DeleteProductHandler)
 	http.HandleFunc("/getProductsCount", productHandler.GetCountHandler)
+	http.HandleFunc("/clearProducts", productHandler.ClearProductsHandler)
 
 	fmt.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
