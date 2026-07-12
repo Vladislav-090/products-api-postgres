@@ -20,10 +20,11 @@ func main() {
 	productStorage := storage.NewProductStorage(db)
 	productHandler := handlers.NewProductHandler(productStorage)
 
-	http.HandleFunc("/addProduct", productHandler.AddProduct)
-	http.HandleFunc("/getProducts", productHandler.GetProducts)
-	http.HandleFunc("/getProduct", productHandler.GetProduct)
-	http.HandleFunc("/updateProduct", productHandler.UpdateProduct)
+	http.HandleFunc("/addProduct", productHandler.AddProductHandler)
+	http.HandleFunc("/getProducts", productHandler.GetProductsHandler)
+	http.HandleFunc("/getProduct", productHandler.GetProductHandler)
+	http.HandleFunc("/updateProduct", productHandler.UpdateProductHandler)
+	http.HandleFunc("/deleteProduct", productHandler.DeleteProductHandler)
 
 	fmt.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

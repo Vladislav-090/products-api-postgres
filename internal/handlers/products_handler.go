@@ -20,7 +20,7 @@ func NewProductHandler(productStorage *storage.ProductStorage) *ProductHandler {
 	}
 }
 
-func (h *ProductHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) AddProductHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
 		return
@@ -54,7 +54,7 @@ func (h *ProductHandler) AddProduct(w http.ResponseWriter, r *http.Request) {
 	response.WriteSucces(w, http.StatusCreated, "Product Created Succsessfully!", createProduct)
 }
 
-func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) GetProductsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
 		return
@@ -69,7 +69,7 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	response.WriteJSON(w, http.StatusOK, products)
 }
 
-func (h ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h ProductHandler) GetProductHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
 		return
@@ -95,7 +95,7 @@ func (h ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	response.WriteJSON(w, http.StatusOK, product)
 }
 
-func (h ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (h ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPut {
 		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
@@ -138,4 +138,33 @@ func (h ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.WriteJSON(w, http.StatusOK, updatedProduct)
+}
+
+func (h ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		response.WriteError(w, http.StatusMethodNotAllowed, "Method not allowed!")
+		return
+	}
+
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		response.WriteError(w, http.StatusBadRequest, "ID is empty!")
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "Invalid ID")
+		return
+	}
+
+	err = h.Storage.DeleteProduct(id)
+	if err != nil {
+		response.WriteError(w, http.StatusBadRequest, "Product not found!")
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, map[string]string{
+		"message": "Product deleted successfully",
+	})
 }
