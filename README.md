@@ -1,103 +1,231 @@
 # Products API PostgreSQL
 
-REST API for managing products built with Go, PostgreSQL and Docker.
+REST API for product management built with Go, PostgreSQL and Docker.
 
-The project demonstrates a simple backend architecture with separated handlers, storage layer, database connection and JSON responses.
+The project implements user authentication using JWT, password hashing with bcrypt and role-based authorization through HTTP middleware. It demonstrates a layered backend architecture with handlers, middleware, storage layer and PostgreSQL.
 
-## Tech Stack
+---
+
+# Tech Stack
 
 - Go
 - PostgreSQL
 - Docker
 - Docker Compose
+- JWT (golang-jwt)
+- bcrypt
 - net/http
 - database/sql
 - godotenv
 - lib/pq
 
-## Features
+---
+
+# Features
+
+### Authentication
+
+- User registration
+- User login
+- Password hashing (bcrypt)
+- JWT authentication
+- JWT validation
+- Authentication middleware
+- Role-based authorization (user/admin)
+- Protected routes
+
+### Products
 
 - Create product
 - Get all products
 - Get product by ID
-- Update product by ID
-- Delete product by ID
+- Update product
+- Delete product
 - Get products count
 - Clear all products
+
+### General
+
 - PostgreSQL storage layer
 - Docker Compose support
 - Environment variables configuration
-- Basic request validation
-- JSON responses
+- JSON API
+- Request validation
 
-## Project Structure
+---
+
+# Project Structure
 
 ```text
 products-api-postgres
 ├── internal
-│   ├── database
-│   │   └── database.go
-│   ├── handlers
-│   │   └── products_handler.go
-│   ├── models
-│   │   └── product.go
-│   ├── response
-│   │   └── response.go
-│   └── storage
-│       └── product_storage.go
+│
+├── auth
+│   ├── jwt.go
+│   └── password.go
+│
+├── database
+│   └── database.go
+│
+├── handlers
+│   ├── auth_handlers.go
+│   └── products_handler.go
+│
+├── middleware
+│   └── auth_middleware.go
+│
+├── models
+│   ├── product.go
+│   ├── user.go
+│   └── login.go
+│
+├── response
+│   └── response.go
+│
+├── storage
+│   ├── product_storage.go
+│   └── user_storage.go
+│
 ├── Dockerfile
 ├── docker-compose.yml
 ├── init.sql
 ├── solution.sql
-├── .dockerignore
 ├── .env.example
-├── .gitignore
-├── go.mod
-├── go.sum
 ├── main.go
 └── README.md
 ```
 
-## Architecture
+---
+
+# Architecture
 
 ```text
-HTTP Request
-    ↓
-Handler
-    ↓
-Storage
-    ↓
-PostgreSQL
-    ↓
-Storage
-    ↓
-Handler
-    ↓
-HTTP Response
+                Client
+                   │
+                   ▼
+        HTTP Request
+                   │
+                   ▼
+        Auth Middleware
+        (JWT Validation)
+                   │
+                   ▼
+      Admin Middleware
+      (Role Validation)
+                   │
+                   ▼
+              Handler
+                   │
+                   ▼
+              Storage
+                   │
+                   ▼
+            PostgreSQL
+                   │
+                   ▼
+              Storage
+                   │
+                   ▼
+              Handler
+                   │
+                   ▼
+          HTTP JSON Response
 ```
 
-### Layers
+---
 
-**Handler layer**
+# Layers
 
-- checks HTTP methods
-- reads query parameters
-- decodes JSON body
-- validates request data
-- returns JSON responses
+## Middleware
 
-**Storage layer**
+Responsible for:
 
-- works with PostgreSQL
-- executes SQL queries
-- returns data or errors to handlers
+- reading Authorization header
+- validating JWT
+- parsing token
+- extracting user claims
+- checking user role
+- protecting API endpoints
 
-**Response layer**
+---
 
-- formats JSON responses
-- formats error responses
+## Handler
 
-## Environment Variables
+Responsible for:
+
+- HTTP methods validation
+- request validation
+- JSON decoding
+- calling storage methods
+- returning JSON responses
+
+---
+
+## Storage
+
+Responsible for:
+
+- executing SQL queries
+- communicating with PostgreSQL
+- returning models and errors
+
+---
+
+## Response
+
+Responsible for:
+
+- JSON formatting
+- unified error responses
+
+---
+
+# Authentication
+
+The API uses JWT (JSON Web Token).
+
+Authentication flow:
+
+1. User registers.
+2. Password is hashed using bcrypt.
+3. User logs in.
+4. Server validates credentials.
+5. JWT token is generated.
+6. Client stores the token.
+7. Client sends
+
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+for every protected request.
+
+---
+
+# Roles
+
+## user
+
+Can:
+
+- Get products
+- Get product by ID
+- Get products count
+
+---
+
+## admin
+
+Can additionally:
+
+- Create product
+- Update product
+- Delete product
+- Clear all products
+
+---
+
+# Environment Variables
 
 Create a `.env` file based on `.env.example`.
 
@@ -108,57 +236,13 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 DB_NAME=products_api
 DB_SSLMODE=disable
+
+JWT_SECRET=your_secret_key
 ```
 
-Do not commit your real `.env` file to GitHub.
+---
 
-## Run Locally
-
-Create database:
-
-```sql
-CREATE DATABASE products_api;
-```
-
-Connect to database:
-
-```sql
-\c products_api
-```
-
-Create table:
-
-```sql
-CREATE TABLE products (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(150) NOT NULL,
-    price NUMERIC(10, 2) CHECK (price > 0),
-    in_stock BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-Install dependencies:
-
-```bash
-go mod tidy
-```
-
-Run the server:
-
-```bash
-go run main.go
-```
-
-Server will be available at:
-
-```text
-http://localhost:8080
-```
-
-## Run with Docker
-
-Start API and PostgreSQL with Docker Compose:
+# Run with Docker
 
 ```bash
 docker compose up --build
@@ -166,177 +250,170 @@ docker compose up --build
 
 Docker Compose starts:
 
-- Go API container
-- PostgreSQL container
-- PostgreSQL volume
-- database initialization from `init.sql`
+- Go API
+- PostgreSQL
+- Docker volume
+- Database initialization
 
-API will be available at:
+API:
 
-```text
+```
 http://localhost:8080
 ```
 
-PostgreSQL will be available from host machine at:
-
-```text
-localhost:5433
-```
-
-Inside Docker network, API connects to PostgreSQL using:
-
-```env
-DB_HOST=postgres
-DB_PORT=5432
-```
-
-Stop containers:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-Stop containers and remove database volume:
+Remove database volume:
 
 ```bash
 docker compose down -v
 ```
 
-`docker compose down -v` removes PostgreSQL data.
+---
 
-## API Endpoints
+# API Endpoints
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/addProduct` | Create product |
-| GET | `/getProducts` | Get all products |
-| GET | `/getProduct?id=1` | Get product by ID |
-| PUT | `/updateProduct?id=1` | Update product by ID |
-| DELETE | `/deleteProduct?id=1` | Delete product by ID |
-| GET | `/getProductsCount` | Get products count |
-| DELETE | `/clearProducts` | Delete all products |
+| Method | Endpoint | Access |
+|---------|----------|--------|
+| POST | /register | Public |
+| POST | /login | Public |
+| GET | /getProducts | Authenticated |
+| GET | /getProduct?id=1 | Authenticated |
+| GET | /getProductsCount | Authenticated |
+| POST | /addProduct | Admin |
+| PUT | /updateProduct?id=1 | Admin |
+| DELETE | /deleteProduct?id=1 | Admin |
+| DELETE | /clearProducts | Admin |
 
-## Request Examples
+---
 
-### Create Product
+# Request Examples
 
-```powershell
-Invoke-RestMethod -Method POST http://localhost:8080/addProduct `
-  -ContentType "application/json" `
-  -Body '{"title":"Laptop","price":1500}'
+## Register
+
+```http
+POST /register
 ```
-
-Example response:
 
 ```json
 {
-  "message": "Product Created Succsessfully!",
-  "product": {
-    "id": 1,
-    "title": "Laptop",
-    "price": 1500,
-    "in_stock": true,
-    "created_at": "2026-07-12T09:30:18.42289Z"
-  }
+    "email":"admin@mail.com",
+    "password":"12345678"
 }
 ```
 
-### Get All Products
+---
 
-```powershell
-Invoke-RestMethod -Method GET http://localhost:8080/getProducts
+## Login
+
+```http
+POST /login
 ```
-
-Example response:
 
 ```json
-[
-  {
-    "id": 1,
-    "title": "Laptop",
-    "price": 1500,
-    "in_stock": true,
-    "created_at": "2026-07-12T09:30:18.42289Z"
-  }
-]
+{
+    "email":"admin@mail.com",
+    "password":"12345678"
+}
 ```
 
-### Get Product By ID
+Response
 
-```powershell
-Invoke-RestMethod -Method GET "http://localhost:8080/getProduct?id=1"
+```json
+{
+    "token":"eyJhbGc..."
+}
 ```
 
-### Update Product
+---
 
-```powershell
-Invoke-RestMethod -Method PUT "http://localhost:8080/updateProduct?id=1" `
-  -ContentType "application/json" `
-  -Body '{"title":"Updated Laptop","price":1700,"in_stock":true}'
+## Authorized Request
+
+```http
+Authorization: Bearer eyJhbGc...
 ```
 
-### Delete Product
+---
 
-```powershell
-Invoke-RestMethod -Method DELETE "http://localhost:8080/deleteProduct?id=1"
+## Create Product
+
+```json
+{
+    "title":"Laptop",
+    "price":1500,
+    "in_stock":true
+}
 ```
 
-### Get Products Count
+---
 
-```powershell
-Invoke-RestMethod -Method GET http://localhost:8080/getProductsCount
-```
-
-### Clear Products
-
-```powershell
-Invoke-RestMethod -Method DELETE http://localhost:8080/clearProducts
-```
-
-## Validation
+# Validation
 
 The API validates:
 
-- product title must not be empty
-- product price must be greater than zero
-- product ID must be a valid integer
-- request body must contain valid JSON
-- HTTP method must match the endpoint
+## Product
 
-## Docker Notes
+- title cannot be empty
+- price must be positive
+- ID must be valid
+- JSON must be valid
 
-The application can work in two modes:
+## Authentication
 
-### Local mode
+- Authorization header is required
+- JWT token must be valid
+- JWT token must not be expired
+- Password must match bcrypt hash
 
-Environment variables are loaded from `.env`:
+## Authorization
 
-```go
-_ = godotenv.Load()
-```
+- Admin routes require admin role
 
-### Docker mode
+---
 
-Environment variables are passed from `docker-compose.yml`:
+# Docker Notes
 
-```yaml
-environment:
-  DB_HOST: postgres
-  DB_PORT: 5432
-  DB_USER: postgres
-  DB_PASSWORD: postgres
-  DB_NAME: products_api
-  DB_SSLMODE: disable
-```
+Local mode
 
-That is why `.env` is not copied into the Docker image.
+Environment variables are loaded from `.env`.
 
-## Next Improvements
+Docker mode
 
-- JWT authentication
-- Auth middleware
-- Protected routes
-- Request logging middleware
+Variables are passed through `docker-compose.yml`.
+
+`.env` is not copied into the Docker image.
+
+---
+
+# Future Improvements
+
+- Database migrations
 - Unit tests
-- Better error handling
-- Swagger documentation
+- Integration tests
+- Redis caching
+- Swagger / OpenAPI
+- Request logging middleware
+- Graceful shutdown
+- Configuration package
+- Refresh tokens
+
+---
+
+# Learning Goals
+
+This project demonstrates practical implementation of:
+
+- Layered Architecture
+- PostgreSQL
+- Docker
+- JWT Authentication
+- HTTP Middleware
+- Role-Based Authorization
+- Password Hashing (bcrypt)
+- Environment Variables
+- REST API Design
+- JSON APIs

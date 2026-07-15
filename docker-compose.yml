@@ -29,6 +29,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: products_api
       DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy

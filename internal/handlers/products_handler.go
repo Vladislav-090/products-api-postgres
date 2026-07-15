@@ -104,7 +104,7 @@ func (h ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Requ
 
 	idParam := r.URL.Query().Get("id")
 	if idParam == "" {
-		response.WriteError(w, http.StatusBadRequest, "Titile is empty!")
+		response.WriteError(w, http.StatusBadRequest, "ID is empty!")
 		return
 	}
 

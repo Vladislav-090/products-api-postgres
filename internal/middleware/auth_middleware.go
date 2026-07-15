@@ -37,3 +37,29 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func GetClaims(r *http.Request) (*auth.Claims, bool) {
+	value := r.Context().Value(claimsKey)
+
+	claims, ok := value.(*auth.Claims)
+
+	return claims, ok
+}
+
+func AdminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := GetClaims(r)
+
+		if !ok {
+			response.WriteError(w, http.StatusUnauthorized, "Unauthorized")
+			return
+		}
+		if claims.UserRole != "admin" {
+			response.WriteError(w, http.StatusForbidden, "Admin access required!")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+
+}
